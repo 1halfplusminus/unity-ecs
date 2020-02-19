@@ -14,10 +14,8 @@ public class DebugFindTargetSystem : ComponentSystem
         var componentDataFromEntity = GetComponentDataFromEntity<Translation>(true);
         Entities.WithAll<HasTarget>().ForEach((Entity entity, ref Translation translation, ref HasTarget hasTarget) =>
         {
-            Debug.Log("here");
             if (componentDataFromEntity.Exists(hasTarget.target))
             {
-                Debug.Log("here");
                 Translation targetPosition = componentDataFromEntity[hasTarget.target];
                 Debug.DrawLine(targetPosition.Value, translation.Value);
             }

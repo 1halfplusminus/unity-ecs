@@ -15,7 +15,6 @@ public class FindTargetSystem : ComponentSystem
 
         Entities.WithAll<UnitData>().ForEach((Entity entity, ref Translation unitTranslation) =>
         {
-            Debug.Log("FindTargetSystem :" + entity);
             Entity closestTargetEntity = Entity.Null;
             float3 unitPosition = unitTranslation.Value;
             float3 closestTargetPosition = new float3(0);
