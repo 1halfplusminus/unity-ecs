@@ -66,7 +66,7 @@ public class FindTargetJobSystem : JobComponentSystem
             }
             if (closestTargetEntity != Entity.Null)
             {
-                //entityCommandBuffer.AddComponent(index, entity, new HasTarget() { target = closestTargetEntity });
+                entityCommandBuffer.AddComponent(index, entity, new HasTarget() { target = closestTargetEntity });
             }
         }
     }

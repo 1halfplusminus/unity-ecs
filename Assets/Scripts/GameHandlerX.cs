@@ -16,13 +16,13 @@ public class GameHandlerX : MonoBehaviour
         var settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, new BlobAssetStore());
         var convertedTargetPrefab = GameObjectConversionUtility.ConvertGameObjectHierarchy(targetPrefabs, settings);
         EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < 10; i++)
         {
             var entity = entityManager.Instantiate(convertedTargetPrefab);
             entityManager.SetComponentData(entity, new Translation() { Value = GetRandomPosition() });
         }
         var convertedSearchPrefab = GameObjectConversionUtility.ConvertGameObjectHierarchy(searchPrefabs, settings);
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < 1; i++)
         {
             var entity = entityManager.Instantiate(convertedSearchPrefab);
             entityManager.SetComponentData(entity, new Translation() { Value = GetRandomPosition() });
