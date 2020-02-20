@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4947939481493281176}
   - component: {fileID: 994293282}
   - component: {fileID: 6143365229104722759}
+  - component: {fileID: 1945901245322662616}
   m_Layer: 0
   m_Name: Marine
   m_TagString: Untagged
@@ -106,3 +107,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4514213e213de444a82b00cb3fb9467, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1945901245322662616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8366488988381373308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fefc173feaefbfc47b0e9aaa5d6ad30f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  typeEnum: 0

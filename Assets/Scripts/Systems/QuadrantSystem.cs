@@ -6,34 +6,37 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
+
+public struct QuandrantData
+{
+    public Entity entity;
+    public Translation translation;
+}
 public class QuadrantSystem : JobComponentSystem
 {
-    private struct QuandrantEntity
-    {
-        Entity entity;
-        int index;
-    }
+
     private EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBuffer;
     protected override void OnCreate()
     {
         endSimulationEntityCommandBuffer = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         base.OnCreate();
     }
+    [RequireComponentTag(typeof(QuadrantEntity))]
     struct QuadrantSystemJob : IJobForEachWithEntity<Translation>
     {
         public EntityCommandBuffer.Concurrent entityCommandBuffer;
-        public NativeMultiHashMap<int, Entity>.ParallelWriter quandrantMultiHashMap;
+        public NativeMultiHashMap<int, QuandrantData>.ParallelWriter quandrantMultiHashMap;
         public void Execute(Entity entity, int index, [ReadOnly] ref Translation translation)
         {
             int hashMapKey = GetPositionHasMapKey(translation.Value);
-            quandrantMultiHashMap.Add(hashMapKey, entity);
+            quandrantMultiHashMap.Add(hashMapKey, new QuandrantData() { entity = entity, translation = translation });
         }
     }
 
     protected override JobHandle OnUpdate(JobHandle inputDependencies)
     {
-        EntityQuery query = GetEntityQuery(typeof(Translation));
-        NativeMultiHashMap<int, Entity> quandrantMultiHashMap = new NativeMultiHashMap<int, Entity>(query.CalculateEntityCountWithoutFiltering(), Allocator.TempJob);
+        EntityQuery query = GetEntityQuery(typeof(QuadrantEntity));
+        var quandrantMultiHashMap = new NativeMultiHashMap<int, QuandrantData>(query.CalculateEntityCount(), Allocator.TempJob);
         var job = new QuadrantSystemJob() { entityCommandBuffer = endSimulationEntityCommandBuffer.CreateCommandBuffer().ToConcurrent(), quandrantMultiHashMap = quandrantMultiHashMap.AsParallelWriter() };
         var schedule = job.Schedule(this, inputDependencies);
         endSimulationEntityCommandBuffer.AddJobHandleForProducer(schedule);
@@ -43,7 +46,8 @@ public class QuadrantSystem : JobComponentSystem
                  Input.mousePosition.y,
                  Camera.main.nearClipPlane));
         DebugDrawQuadrant(currentMousePosition);
-        Debug.Log(quandrantMultiHashMap.CountValuesForKey(GetPositionHasMapKey(currentMousePosition)));
+        //Debug.Log(quandrantMultiHashMap.CountValuesForKey(GetPositionHasMapKey(currentMousePosition)));
+        quandrantMultiHashMap.Dispose();
         return schedule;
     }
 
@@ -57,7 +61,7 @@ public class QuadrantSystem : JobComponentSystem
         Debug.DrawLine(lowerLeft + new Vector3(+1, +0) * quadrantCellSize, lowerLeft + new Vector3(+1, +1) * quadrantCellSize);
         Debug.DrawLine(lowerLeft + new Vector3(+0, +1) * quadrantCellSize, lowerLeft + new Vector3(+1, +1) * quadrantCellSize);
 
-        Debug.Log(GetPositionHasMapKey(position) + " " + position);
+        // Debug.Log(GetPositionHasMapKey(position) + " " + position);
     }
     private static int GetPositionHasMapKey(float3 position)
     {
