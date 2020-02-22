@@ -11,33 +11,49 @@ public struct QuandrantData
 {
     public Entity entity;
     public Translation translation;
+
+    public QuadrantEntity quadrantEntity;
 }
 public class QuadrantSystem : JobComponentSystem
 {
-
+    public NativeMultiHashMap<int, QuandrantData> quandrantMultiHashMap;
     private EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBuffer;
-    protected override void OnCreate()
-    {
-        endSimulationEntityCommandBuffer = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-        base.OnCreate();
-    }
-    [RequireComponentTag(typeof(QuadrantEntity))]
-    struct QuadrantSystemJob : IJobForEachWithEntity<Translation>
+    struct QuadrantSystemJob : IJobForEachWithEntity<Translation, QuadrantEntity>
     {
         public EntityCommandBuffer.Concurrent entityCommandBuffer;
         public NativeMultiHashMap<int, QuandrantData>.ParallelWriter quandrantMultiHashMap;
-        public void Execute(Entity entity, int index, [ReadOnly] ref Translation translation)
+        public void Execute(Entity entity, int index, [ReadOnly] ref Translation translation, [ReadOnly] ref QuadrantEntity quadrantEntity)
         {
             int hashMapKey = GetPositionHasMapKey(translation.Value);
-            quandrantMultiHashMap.Add(hashMapKey, new QuandrantData() { entity = entity, translation = translation });
+            quandrantMultiHashMap.Add(hashMapKey, new QuandrantData() { entity = entity, translation = translation, quadrantEntity = quadrantEntity });
         }
     }
-
+    protected override void OnCreate()
+    {
+        quandrantMultiHashMap = new NativeMultiHashMap<int, QuandrantData>(0, Allocator.Persistent);
+        endSimulationEntityCommandBuffer = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        base.OnCreate();
+    }
+    protected override void OnDestroy()
+    {
+        quandrantMultiHashMap.Dispose();
+        base.OnDestroy();
+    }
     protected override JobHandle OnUpdate(JobHandle inputDependencies)
     {
+        quandrantMultiHashMap.Clear();
         EntityQuery query = GetEntityQuery(typeof(QuadrantEntity));
-        var quandrantMultiHashMap = new NativeMultiHashMap<int, QuandrantData>(query.CalculateEntityCount(), Allocator.TempJob);
-        var job = new QuadrantSystemJob() { entityCommandBuffer = endSimulationEntityCommandBuffer.CreateCommandBuffer().ToConcurrent(), quandrantMultiHashMap = quandrantMultiHashMap.AsParallelWriter() };
+        int quandrantEntityLength = query.CalculateEntityCount();
+        if (quandrantEntityLength > quandrantMultiHashMap.Capacity)
+        {
+            Debug.Log("Setting Capacity " + quandrantEntityLength);
+            quandrantMultiHashMap.Capacity = quandrantEntityLength;
+        }
+        var job = new QuadrantSystemJob()
+        {
+            entityCommandBuffer = endSimulationEntityCommandBuffer.CreateCommandBuffer().ToConcurrent(),
+            quandrantMultiHashMap = quandrantMultiHashMap.AsParallelWriter(),
+        };
         var schedule = job.Schedule(this, inputDependencies);
         endSimulationEntityCommandBuffer.AddJobHandleForProducer(schedule);
         schedule.Complete();
@@ -47,11 +63,11 @@ public class QuadrantSystem : JobComponentSystem
                  Camera.main.nearClipPlane));
         DebugDrawQuadrant(currentMousePosition);
         //Debug.Log(quandrantMultiHashMap.CountValuesForKey(GetPositionHasMapKey(currentMousePosition)));
-        quandrantMultiHashMap.Dispose();
+        /*   quandrantMultiHashMap.Dispose(); */
         return schedule;
     }
 
-    const int quadrantYMultiplier = 1000;
+    public const int quadrantYMultiplier = 1000;
     const int quadrantCellSize = 5;
     private static void DebugDrawQuadrant(float3 position)
     {
@@ -63,7 +79,7 @@ public class QuadrantSystem : JobComponentSystem
 
         // Debug.Log(GetPositionHasMapKey(position) + " " + position);
     }
-    private static int GetPositionHasMapKey(float3 position)
+    public static int GetPositionHasMapKey(float3 position)
     {
         return (int)(math.floor(position.x / quadrantCellSize) + (quadrantYMultiplier * math.floor(position.y / quadrantCellSize)));
     }

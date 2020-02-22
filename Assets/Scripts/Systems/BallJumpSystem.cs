@@ -8,7 +8,9 @@ using Unity.Transforms;
 using UnityEngine;
 using static Unity.Mathematics.math;
 
-public class BallJumpSystem : JobComponentSystem {
+[DisableAutoCreation]
+public class BallJumpSystem : JobComponentSystem
+{
     // This declares a new kind of job, which is a unit of work to do.
     // The job is declared as an IJobForEach<Translation, Rotation>,
     // meaning it will process all entities in the world that have both
@@ -18,12 +20,14 @@ public class BallJumpSystem : JobComponentSystem {
     // The job is also tagged with the BurstCompile attribute, which means
     // that the Burst compiler will optimize it for the best performance.
     [BurstCompile]
-    struct BallJumpSystemJob : IJobForEach<PhysicsVelocity> {
+    struct BallJumpSystemJob : IJobForEach<PhysicsVelocity>
+    {
         // Add fields here that your job needs to do its work.
         // For example,
         //    public float deltaTime;
         public bool isSpace;
-        public void Execute (ref PhysicsVelocity velocity) {
+        public void Execute(ref PhysicsVelocity velocity)
+        {
             // Implement the work to perform for each entity here.
             // You should only access data that is local or that is a
             // field on this job. Note that the 'rotation' parameter is
@@ -32,15 +36,17 @@ public class BallJumpSystem : JobComponentSystem {
             // that want to read Rotation component data.
             // For example,
             //     translation.Value += mul(rotation.Value, new float3(0, 0, 1)) * deltaTime;
-            if (isSpace) {
+            if (isSpace)
+            {
                 velocity.Linear.y = 5f;
             }
         }
     }
 
-    protected override JobHandle OnUpdate (JobHandle inputDependencies) {
+    protected override JobHandle OnUpdate(JobHandle inputDependencies)
+    {
 
-        var job = new BallJumpSystemJob () { isSpace = Input.GetKeyDown (KeyCode.Space) };
+        var job = new BallJumpSystemJob() { isSpace = Input.GetKeyDown(KeyCode.Space) };
 
         // Assign values to the fields on your job here, so that it has
         // everything it needs to do its work when it runs later.
@@ -48,6 +54,6 @@ public class BallJumpSystem : JobComponentSystem {
         //     job.deltaTime = UnityEngine.Time.deltaTime;
 
         // Now that the job is set up, schedule it to be run. 
-        return job.Schedule (this, inputDependencies);
+        return job.Schedule(this, inputDependencies);
     }
 }

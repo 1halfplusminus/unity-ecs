@@ -6,6 +6,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using static Unity.Mathematics.math;
 
+[DisableAutoCreation]
 public class UnitMoveToTargetSystem : JobComponentSystem
 {
     [BurstCompile]
@@ -32,6 +33,10 @@ public class UnitMoveToTargetSystem : JobComponentSystem
                     entityCommandBuffer.DestroyEntity(index, hasTarget.target);
                     entityCommandBuffer.RemoveComponent<HasTarget>(index, entity);
                 }
+            }
+            else
+            {
+                entityCommandBuffer.RemoveComponent<HasTarget>(index, entity);
             }
         }
     }
